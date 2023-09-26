@@ -128,39 +128,25 @@ export default {
     })
 
     //получение размера массива репозиториев
-    const getRepositoriesArraySize = computed(() => {
-      return store.state.repositories.length
-    })
+    const getRepositoriesArraySize = computed(() => store.state.repositories.length)
 
     //получение активной страницы
-    const getActivePage = computed(() => {
-      return store.state.activePage
-    })
+    const getActivePage = computed(() => store.state.activePage)
 
     //получение репозиториев на текущей странице
-    const getRepositoriesOnActivePage = computed(() => {
-      return store.state.repositories
-    })
+    const getRepositoriesOnActivePage = computed(() => store.state.repositories)
 
     //получение кол-ва страниц
-    const getCountPages = computed(() => {
-      return store.state.pageCount
-    })
+    const getCountPages = computed(() => store.state.pageCount)
 
     //получение типов сортировок(по возрастанию и по убыванию лежит в сторе)
-    const getOrderTypes = computed(() => {
-      return store.state.orders
-    })
+    const getOrderTypes = computed(() => store.state.orders)
 
     //выбранная сортировка
-    const getOrderSelected = computed(() => {
-      return store.state.order
-    })
+    const getOrderSelected = computed(() => store.state.order)
 
     //получение ошибки с сервера
-    const getError = computed(() => {
-      return store.state.error
-    })
+    const getError = computed(() => store.state.error)
 
     //массив с пагинацией
     const getPaginationData = computed(() => {
