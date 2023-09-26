@@ -1,19 +1,21 @@
 <template>
-  <router-view />
+  <router-view/>
 </template>
 <script setup>
 
 </script>
 <style>
 
-* {box-sizing: border-box;}
+* {
+  box-sizing: border-box;
+}
 
-body{
+body {
   height: 95vh;
   background-color: #DFF4F3;
   justify-content: center;
-  align-items: center;
-  font: 16px/20px Arial,sans-serif;
+  padding: 10px;
+  font: 16px/20px Arial, sans-serif;
   display: flex;
 }
 
