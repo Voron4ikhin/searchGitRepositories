@@ -7,15 +7,25 @@
       <button @click="findResults()">Найти</button>
     </div>
 
+    <div v-if="getError" class="wr-error">
+      <span>Возникла ошибка - {{ getError }}</span>
+    </div>
+
     <div class="wr-sort">
       <div class="order-selected" @click="openSelect()">
-        {{ getOrderTypes[getOrderSelected] }}
-        <img v-if="openSelectFlag" src="../assets/chevron-opened.svg">
-        <img v-else src="../assets/chevron.svg">
+        <div class="sort-name">
+          {{ getOrderTypes[getOrderSelected] }}
+          <img v-if="getOrderSelected === 'asc'" src="../assets/sort-asc.svg" :alt="`icon-${getOrderSelected}`"/>
+          <img v-if="getOrderSelected === 'desc'" src="../assets/sort-desc.svg" :alt="`icon-${getOrderSelected}`"/>
+        </div>
+        <img v-if="openSelectFlag" src="../assets/chevron-opened.svg" alt="chevron-opened">
+        <img v-else src="../assets/chevron.svg" alt="chevron-closed">
       </div>
       <div class="wr-order-to-select" :class="{'active': openSelectFlag }">
         <div class="order-to-select" v-for="(order, index) in getOrderTypes" :key="order" @click="setSort(index)">
           {{ order }}
+          <img v-if="index === 'asc'" src="../assets/sort-asc.svg" :alt="`icon-${index}`"/>
+          <img v-if="index === 'desc'" src="../assets/sort-desc.svg" :alt="`icon-${index}`"/>
         </div>
       </div>
     </div>
@@ -41,21 +51,16 @@
         </tr>
         </tbody>
       </table>
-      <div class="wr-pagination">
-        <ul>
-          <li v-for="page in getPaginationData" :key="page">
-            <div class="pagination-item--not-page" v-if="page === '...'">{{ page }}</div>
-            <div class="pagination-item" v-else :class="{'active': page===getActivePage}"
-                 @click="changeActivePage(page)">{{ page }}
-            </div>
-          </li>
-        </ul>
-      </div>
+
+      <PaginationComponent/>
+
     </div>
-    
+
     <div v-else>
-      <div v-if="getError" class="wr-error">
-        <span class="error">Возникла ошибка - {{ getError }}</span>
+      <div v-if="sendRequest">
+        <span>По ключевому слову "{{
+            searchInput
+          }}" к сожалению ничего не найдено, попробуйте ввести другое слово</span>
       </div>
       <div v-else>
         <span>Введите ключевые слова чтобы мы могли показать вам результат! Пока ничего не найдено!</span>
@@ -66,34 +71,27 @@
 <script>
 
 import {ref, computed} from 'vue'
-import {useStore} from 'vuex';
+import {useStore} from 'vuex'
+import PaginationComponent from './PaginationComponent.vue'
 
 export default {
+  components: {
+    PaginationComponent
+  },
   setup() {
     //флаг для открытия сортировочного поля (по возрастанию/по убыванию)
     let openSelectFlag = ref(false)
+
+    //флаг проверка на отправленный запрос
+    let sendRequest = ref(false)
+
     //store
     const store = useStore()
 
     function findResults() {
-      let query = searchInput.value
-      let page = store.state.getActivePage
-      let order = store.state.order
-      let maxElementsOnPage = getMaxElementsOnPage.value
-      store.dispatch('addRepositories', [page, query, order, maxElementsOnPage])
-    }
-
-    //функция для поиска наиболее встречаемого языка программирования в объекте
-    function getMostCommon(languages) {
-      return Object.keys(languages).reduce((a, b) => languages[a] > languages[b] ? a : b)
-    }
-
-    //функция изменения страницы
-    function changeActivePage(page) {
-      let query = searchInput.value
-      let order = store.state.order
-      let maxElementsOnPage = getMaxElementsOnPage.value
-      store.dispatch('changeActivePage', [page, query, order, maxElementsOnPage])
+      let page = 1
+      sendRequest.value = true
+      store.dispatch('addRepositories', page)
     }
 
     //функция преобразования даты
@@ -111,11 +109,6 @@ export default {
     function openSelect() {
       openSelectFlag.value = !openSelectFlag.value
     }
-
-    //получение максимального кол-ва элементов на странице
-    const getMaxElementsOnPage = computed(() => {
-      return store.state.maxElementsOnPage
-    })
 
     //v-model для input search
     const searchInput = computed({
@@ -148,63 +141,14 @@ export default {
     //получение ошибки с сервера
     const getError = computed(() => store.state.error)
 
-    //массив с пагинацией
-    const getPaginationData = computed(() => {
-      const page = getActivePage.value
-      const maxPage = getCountPages.value
-      const unwantedPages = [0, maxPage + 1]
-      let paginationArray = [1, page - 1, page, page + 1, maxPage]
-      paginationArray = paginationArray.filter(item => !unwantedPages.includes(item))
-      paginationArray = paginationArray.filter((item, index) => {
-        return index === paginationArray.indexOf(item)
-      })
-      if (maxPage < 4) return paginationArray
-      switch (paginationArray.length) {
-        case 3:
-          if (page === 1) {
-            paginationArray.splice(2, 0, '...')
-          } else {
-            paginationArray.splice(-2, 0, '...')
-          }
-          return paginationArray
-        case 4:
-          if (maxPage === 4) {
-            return paginationArray
-          }
-          if (page - 1 === 1) {
-            paginationArray.splice(-1, 0, '...')
-          } else {
-            paginationArray.splice(1, 0, '...')
-          }
-          return paginationArray
-        case 5:
-          if (maxPage === 5) {
-            return paginationArray
-          }
-          if (page - 2 === 1) {
-            paginationArray.splice(-1, 0, '...')
-          } else if (page + 2 === maxPage) {
-            paginationArray.splice(1, 0, '...')
-          } else {
-            paginationArray.splice(-1, 0, '...')
-            paginationArray.splice(1, 0, '...')
-          }
-          return paginationArray
-        default:
-          return paginationArray
-      }
-    })
-
 
     return {
       openSelectFlag,
-      getMostCommon,
-      changeActivePage,
+      sendRequest,
       getCleanDate,
       setSort,
       openSelect,
       findResults,
-      getPaginationData,
       getRepositoriesArraySize,
       getActivePage,
       getRepositoriesOnActivePage,
@@ -212,7 +156,6 @@ export default {
       getOrderTypes,
       getOrderSelected,
       searchInput,
-      getMaxElementsOnPage,
       getError,
     }
   },
@@ -233,6 +176,7 @@ export default {
   cursor: pointer;
   color: #878ECD;
   margin-bottom: 15px;
+  position: relative;
 
   .order-selected {
     border: 1px solid #878ECD;
@@ -243,6 +187,15 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    .sort-name {
+      display: flex;
+
+      img {
+        margin-left: 5px;
+        width: 20px;
+      }
+    }
 
     img {
       width: 15px;
@@ -255,6 +208,8 @@ export default {
 
     &.active {
       display: block;
+      position: absolute;
+      width: 100%;
     }
   }
 
@@ -263,10 +218,16 @@ export default {
     width: 100%;
     padding: 10px;
     background-color: white;
+    display: flex;
 
     &:hover {
       background-color: #B9BBDF;
       color: #DFF4F3;
+    }
+
+    img {
+      margin-left: 5px;
+      width: 20px;
     }
   }
 }
@@ -284,10 +245,9 @@ export default {
 
   .wr-search {
     position: relative;
-    margin: 0 auto;
+    margin: 0 auto 15px;
     width: 100%;
     display: flex;
-    margin-bottom: 15px;
   }
 
   .search-input {
@@ -313,13 +273,10 @@ export default {
   }
 
   .wr-error {
-    margin-top: 30px;
-
-    .error {
-      background-color: #ff000033;
-      padding: 10px;
-      border: thick double #ff000021;
-    }
+    margin: 15px 0;
+    background-color: #ff000033;
+    padding: 10px;
+    border: thick double #ff000021;
   }
 }
 
@@ -402,7 +359,7 @@ td {
     }
   }
 
-  .pagination-item--not-page {
+  .pagination-item-not-page {
     background-color: #DDE7F2;
     min-width: 30px;
     height: 30px;
