@@ -11,5 +11,6 @@ export default {
     },
     pageCount: 0,
     language: [],
-    error: ''
+    error: '',
+    lastKeyWord: '',
 }

@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <div v-if="getRepositoriesArraySize > 0">
+    <div v-if="getRepositoriesOnActivePage.length">
       <table class="wr-table">
         <thead>
         <tr>
@@ -52,14 +52,17 @@
         </tbody>
       </table>
 
-      <PaginationComponent/>
+      <NewPagination
+          :activePage=getActivePage
+          :maxPage=getCountPages
+          :changePageFunction=changeActivePage/>
 
     </div>
 
     <div v-else>
       <div v-if="sendRequest">
         <span>По ключевому слову "{{
-            searchInput
+            getLastKeyWord
           }}" к сожалению ничего не найдено, попробуйте ввести другое слово</span>
       </div>
       <div v-else>
@@ -72,11 +75,11 @@
 
 import {ref, computed} from 'vue'
 import {useStore} from 'vuex'
-import PaginationComponent from './PaginationComponent.vue'
+import NewPagination from './NewPagination.vue'
 
 export default {
   components: {
-    PaginationComponent
+    NewPagination
   },
   setup() {
     //флаг для открытия сортировочного поля (по возрастанию/по убыванию)
@@ -91,7 +94,7 @@ export default {
     function findResults() {
       let page = 1
       sendRequest.value = true
-      store.dispatch('addRepositories', page)
+      store.dispatch('fetchAndCommitRepositories', [page, true])
     }
 
     //функция преобразования даты
@@ -110,6 +113,11 @@ export default {
       openSelectFlag.value = !openSelectFlag.value
     }
 
+    //функция изменения страницы
+    function changeActivePage(page) {
+      store.dispatch('fetchAndCommitRepositories', [page])
+    }
+
     //v-model для input search
     const searchInput = computed({
       get() {
@@ -119,9 +127,6 @@ export default {
         store.commit('setInput', input)
       }
     })
-
-    //получение размера массива репозиториев
-    const getRepositoriesArraySize = computed(() => store.state.repositories.length)
 
     //получение активной страницы
     const getActivePage = computed(() => store.state.activePage)
@@ -141,6 +146,56 @@ export default {
     //получение ошибки с сервера
     const getError = computed(() => store.state.error)
 
+    //получение последнего ключевого слова
+    const getLastKeyWord = computed(() => store.state.lastKeyWord)
+
+    //массив с пагинацией
+    const getPaginationData = computed(() => {
+      const page = getActivePage.value
+      const maxPage = store.state.pageCount
+      const unwantedPages = [0, maxPage + 1]
+      let paginationArray = [1, page - 1, page, page + 1, maxPage]
+      paginationArray = paginationArray.filter(item => !unwantedPages.includes(item))
+      paginationArray = paginationArray.filter((item, index) => {
+        return index === paginationArray.indexOf(item)
+      })
+      if (maxPage < 4) return paginationArray
+      switch (paginationArray.length) {
+        case 3:
+          if (page === 1) {
+            paginationArray.splice(2, 0, '...')
+          } else {
+            paginationArray.splice(-2, 0, '...')
+          }
+          return paginationArray
+        case 4:
+          if (maxPage === 4) {
+            return paginationArray
+          }
+          if (page - 1 === 1) {
+            paginationArray.splice(-1, 0, '...')
+          } else {
+            paginationArray.splice(1, 0, '...')
+          }
+          return paginationArray
+        case 5:
+          if (maxPage === 5) {
+            return paginationArray
+          }
+          if (page - 2 === 1) {
+            paginationArray.splice(-1, 0, '...')
+          } else if (page + 2 === maxPage) {
+            paginationArray.splice(1, 0, '...')
+          } else {
+            paginationArray.splice(-1, 0, '...')
+            paginationArray.splice(1, 0, '...')
+          }
+          return paginationArray
+        default:
+          return paginationArray
+      }
+    })
+
 
     return {
       openSelectFlag,
@@ -149,7 +204,7 @@ export default {
       setSort,
       openSelect,
       findResults,
-      getRepositoriesArraySize,
+      changeActivePage,
       getActivePage,
       getRepositoriesOnActivePage,
       getCountPages,
@@ -157,6 +212,8 @@ export default {
       getOrderSelected,
       searchInput,
       getError,
+      getLastKeyWord,
+      getPaginationData,
     }
   },
 

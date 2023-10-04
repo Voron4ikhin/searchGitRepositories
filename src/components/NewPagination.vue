@@ -3,35 +3,31 @@
     <ul>
       <li v-for="page in getPaginationData" :key="page">
         <div class="pagination-item-not-page" v-if="page === '...'">{{ page }}</div>
-        <div class="pagination-item" v-else :class="{ 'active': page === getActivePage }"
+        <div class="pagination-item" v-else :class="{ 'active': page === props.activePage }"
              @click="changeActivePage(page)">{{ page }}
         </div>
       </li>
     </ul>
   </div>
+
 </template>
 
 <script>
 import {computed} from 'vue'
-import {useStore} from 'vuex'
 
 export default {
-  setup() {
-    //store
-    const store = useStore()
+  props: ['activePage', 'maxPage', 'changePageFunction'],
+  setup(props) {
 
-    //функция изменения страницы
+    //функция вызова изменения страницы
     function changeActivePage(page) {
-      store.dispatch('changeActivePage', page)
+      props.changePageFunction(page)
     }
-
-    //получение активной страницы
-    const getActivePage = computed(() => store.state.activePage)
 
     //массив с пагинацией
     const getPaginationData = computed(() => {
-      const page = getActivePage.value
-      const maxPage = store.state.pageCount
+      const page = props.activePage
+      const maxPage = props.maxPage
       const unwantedPages = [0, maxPage + 1]
       let paginationArray = [1, page - 1, page, page + 1, maxPage]
       paginationArray = paginationArray.filter(item => !unwantedPages.includes(item))
@@ -78,12 +74,11 @@ export default {
     return {
       changeActivePage,
       getPaginationData,
-      getActivePage,
+      props
     }
   }
 }
 </script>
 
 
-<style>
-</style>
+<style></style>

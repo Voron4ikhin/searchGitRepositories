@@ -33,3 +33,7 @@ export function setPageCount(state, pageCount) {
 export function setError(state, error) {
     state.error = error
 }
+
+export function setLastKeyword(state, lastKeyWord) {
+    state.lastKeyWord = lastKeyWord
+}
