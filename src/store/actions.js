@@ -13,7 +13,11 @@ export async function fetchAndCommitRepositories({commit, state}, [page, firstRe
             commit('setLastKeyword', state.inputSearch)
         }
     } catch (error) {
-        commit('setError', error.response.data.message)
+        let errorToWrite = 'Неизвестная ошибка'
+        if(error.response){
+            errorToWrite = error.response.data.message
+        }
+        commit('setError', errorToWrite)
     }
 
 }

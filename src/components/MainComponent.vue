@@ -55,7 +55,7 @@
       <NewPagination
           :activePage=getActivePage
           :maxPage=getCountPages
-          :changePageFunction=changeActivePage/>
+          :changePageFunction=changeActivePage />
 
     </div>
 
