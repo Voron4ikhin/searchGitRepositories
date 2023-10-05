@@ -85,9 +85,6 @@ export default {
     //флаг для открытия сортировочного поля (по возрастанию/по убыванию)
     let openSelectFlag = ref(false)
 
-    //флаг проверка на отправленный запрос
-    let sendRequest = ref(false)
-
     //store
     const store = useStore()
 
@@ -127,6 +124,9 @@ export default {
         store.commit('setInput', input)
       }
     })
+
+    //флаг проверка на отправленный запрос
+    const sendRequest = computed(() => store.state.sendRequest)
 
     //получение активной страницы
     const getActivePage = computed(() => store.state.activePage)

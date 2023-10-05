@@ -13,4 +13,5 @@ export default {
     language: [],
     error: '',
     lastKeyWord: '',
+    sendRequest: false,
 }

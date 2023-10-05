@@ -4,6 +4,9 @@ export function addRepositoriesByPage(state, [page, result]) {
 
 export function addRepositories(state, result) {
     state.repositories = result
+    if(result){
+        state.sendRequest = true
+    } 
 }
 
 export function setInput(state, value) {
