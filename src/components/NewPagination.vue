@@ -3,7 +3,7 @@
     <ul>
       <li v-for="page in getPaginationData" :key="page">
         <div class="pagination-item-not-page" v-if="page === '...'">{{ page }}</div>
-        <div class="pagination-item" v-else :class="{ 'active': page === props.activePage }"
+        <div class="pagination-item" v-else :class="{ 'active': page === props.modelValue }"
              @click="changeActivePage(page)">{{ page }}
         </div>
       </li>
@@ -16,17 +16,17 @@
 import {computed} from 'vue'
 
 export default {
-  props: ['activePage', 'maxPage', 'changePageFunction'],
-  setup(props) {
+  props: ['modelValue', 'maxPage'],
+  setup(props, {emit}) {
 
     //функция вызова изменения страницы
     function changeActivePage(page) {
-      props.changePageFunction(page)
+      emit('update:modelValue', page)
     }
 
     //массив с пагинацией
     const getPaginationData = computed(() => {
-      const page = props.activePage
+      const page = props.modelValue
       const maxPage = props.maxPage
       const unwantedPages = [0, maxPage + 1]
       let paginationArray = [1, page - 1, page, page + 1, maxPage]

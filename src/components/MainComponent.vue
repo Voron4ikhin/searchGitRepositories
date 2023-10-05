@@ -53,10 +53,10 @@
       </table>
 
       <NewPagination
-          :activePage=getActivePage
           :maxPage=getCountPages
-          :changePageFunction=changeActivePage />
-
+          :model-value="getActivePage"
+          @update:model-value="page => changeActivePage(page)"
+      />
     </div>
 
     <div v-else>
